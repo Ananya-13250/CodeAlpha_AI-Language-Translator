@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables / secrets
+.env
+
+# Generated audio
+*.mp3
+*.wav
+
+# IDE
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
