@@ -1,12 +1,6 @@
 // =========================================================
-// GET ELEMENTS
+// ELEMENTS
 // =========================================================
-
-const sourceLanguage =
-    document.getElementById("sourceLanguage");
-
-const targetLanguage =
-    document.getElementById("targetLanguage");
 
 const inputText =
     document.getElementById("inputText");
@@ -14,551 +8,130 @@ const inputText =
 const translatedText =
     document.getElementById("translatedText");
 
-const pronunciation =
-    document.getElementById("pronunciation");
+const sourceLanguage =
+    document.getElementById("sourceLanguage");
 
-const pronunciationContainer =
-    document.getElementById("pronunciationContainer");
+const targetLanguage =
+    document.getElementById("targetLanguage");
 
 const translateButton =
     document.getElementById("translateButton");
 
-const speakButton =
-    document.getElementById("speakButton");
+const swapButton =
+    document.getElementById("swapButton");
 
 const copyButton =
     document.getElementById("copyButton");
 
+const speakButton =
+    document.getElementById("speakButton");
+
 const clearButton =
     document.getElementById("clearButton");
-
-const swapButton =
-    document.getElementById("swapButton");
 
 const status =
     document.getElementById("status");
 
+const pronunciationContainer =
+    document.getElementById(
+        "pronunciationContainer"
+    );
+
+const pronunciation =
+    document.getElementById(
+        "pronunciation"
+    );
+
+const pronunciationTitle =
+    document.getElementById(
+        "pronunciationTitle"
+    );
+
 
 // =========================================================
-// SPEECH VARIABLES
+// LANGUAGE NAMES
 // =========================================================
 
-let availableVoices = [];
+const languageNames = {
+
+    en: "English",
+    hi: "Hindi",
+    mr: "Marathi",
+    gu: "Gujarati",
+    bn: "Bengali",
+    ta: "Tamil",
+    te: "Telugu",
+    kn: "Kannada",
+    ml: "Malayalam",
+    pa: "Punjabi",
+    ur: "Urdu",
+
+    fr: "French",
+    es: "Spanish",
+    de: "German",
+    it: "Italian",
+    pt: "Portuguese",
+    nl: "Dutch",
+
+    ru: "Russian",
+    uk: "Ukrainian",
+    pl: "Polish",
+    cs: "Czech",
+    sk: "Slovak",
+    ro: "Romanian",
+    hu: "Hungarian",
+    bg: "Bulgarian",
+    el: "Greek",
+
+    sv: "Swedish",
+    da: "Danish",
+    no: "Norwegian",
+    fi: "Finnish",
+    is: "Icelandic",
+    ga: "Irish",
+
+    ar: "Arabic",
+    he: "Hebrew",
+    fa: "Persian",
+    tr: "Turkish",
+
+    "zh-CN": "Chinese",
+    "zh-TW": "Chinese",
+
+    ja: "Japanese",
+    ko: "Korean",
+    th: "Thai",
+    vi: "Vietnamese",
+
+    id: "Indonesian",
+    ms: "Malay",
+    fil: "Filipino",
+
+    sw: "Swahili",
+    af: "Afrikaans",
+    sq: "Albanian",
+    hy: "Armenian",
+    az: "Azerbaijani",
+    eu: "Basque",
+    be: "Belarusian",
+    bs: "Bosnian",
+    ca: "Catalan",
+    hr: "Croatian",
+    et: "Estonian",
+    ka: "Georgian",
+    kk: "Kazakh",
+    km: "Khmer",
+    lo: "Lao",
+    lv: "Latvian",
+    lt: "Lithuanian",
+    mk: "Macedonian",
+    mn: "Mongolian",
+    ne: "Nepali",
+    sr: "Serbian",
+    sl: "Slovenian",
+    cy: "Welsh"
 
-
-// =========================================================
-// LANGUAGE → SPEECH LOCALE
-// =========================================================
-
-const speechLanguages = {
-
-    // -----------------------------------------------------
-    // INDIAN LANGUAGES
-    // -----------------------------------------------------
-
-    "en": "en-US",
-
-    "hi": "hi-IN",
-
-    "mr": "mr-IN",
-
-    "gu": "gu-IN",
-
-    "bn": "bn-IN",
-
-    "ta": "ta-IN",
-
-    "te": "te-IN",
-
-    "kn": "kn-IN",
-
-    "ml": "ml-IN",
-
-    "pa": "pa-IN",
-
-    "ur": "ur-IN",
-
-    "ne": "ne-NP",
-
-
-    // -----------------------------------------------------
-    // EUROPEAN
-    // -----------------------------------------------------
-
-    "fr": "fr-FR",
-
-    "es": "es-ES",
-
-    "de": "de-DE",
-
-    "it": "it-IT",
-
-    "pt": "pt-PT",
-
-    "nl": "nl-NL",
-
-    "ru": "ru-RU",
-
-    "uk": "uk-UA",
-
-    "pl": "pl-PL",
-
-    "cs": "cs-CZ",
-
-    "sk": "sk-SK",
-
-    "ro": "ro-RO",
-
-    "hu": "hu-HU",
-
-    "bg": "bg-BG",
-
-    "el": "el-GR",
-
-    "sv": "sv-SE",
-
-    "da": "da-DK",
-
-    "no": "no-NO",
-
-    "fi": "fi-FI",
-
-    "is": "is-IS",
-
-    "ga": "ga-IE",
-
-    "cy": "cy-GB",
-
-    "ca": "ca-ES",
-
-    "hr": "hr-HR",
-
-    "sr": "sr-RS",
-
-    "sl": "sl-SI",
-
-    "et": "et-EE",
-
-    "lv": "lv-LV",
-
-    "lt": "lt-LT",
-
-    "mk": "mk-MK",
-
-    "sq": "sq-AL",
-
-    "bs": "bs-BA",
-
-    "be": "be-BY",
-
-
-    // -----------------------------------------------------
-    // MIDDLE EAST
-    // -----------------------------------------------------
-
-    "ar": "ar-SA",
-
-    "he": "he-IL",
-
-    "fa": "fa-IR",
-
-    "tr": "tr-TR",
-
-
-    // -----------------------------------------------------
-    // EAST ASIA
-    // -----------------------------------------------------
-
-    "ja": "ja-JP",
-
-    "ko": "ko-KR",
-
-    "zh-CN": "zh-CN",
-
-    "zh-TW": "zh-TW",
-
-    "th": "th-TH",
-
-    "vi": "vi-VN",
-
-
-    // -----------------------------------------------------
-    // SOUTH EAST ASIA
-    // -----------------------------------------------------
-
-    "id": "id-ID",
-
-    "ms": "ms-MY",
-
-    "fil": "fil-PH",
-
-
-    // -----------------------------------------------------
-    // AFRICA
-    // -----------------------------------------------------
-
-    "sw": "sw-KE",
-
-    "af": "af-ZA",
-
-
-    // -----------------------------------------------------
-    // OTHER
-    // -----------------------------------------------------
-
-    "hy": "hy-AM",
-
-    "az": "az-AZ",
-
-    "eu": "eu-ES",
-
-    "ka": "ka-GE",
-
-    "kk": "kk-KZ",
-
-    "km": "km-KH",
-
-    "lo": "lo-LA",
-
-    "mn": "mn-MN"
 };
-
-
-// =========================================================
-// LOAD BROWSER VOICES
-// =========================================================
-
-function loadVoices() {
-
-    availableVoices =
-        window.speechSynthesis.getVoices();
-
-    console.log(
-        "Available speech voices:",
-        availableVoices
-    );
-}
-
-
-// Chrome/Edge sometimes loads voices asynchronously
-loadVoices();
-
-if (
-    "speechSynthesis" in window &&
-    "onvoiceschanged" in window.speechSynthesis
-) {
-
-    window.speechSynthesis.onvoiceschanged =
-        loadVoices;
-}
-
-
-// =========================================================
-// GET SPEECH LANGUAGE
-// =========================================================
-
-function getSpeechLanguage(language) {
-
-    return (
-        speechLanguages[language] ||
-        language ||
-        "en-US"
-    );
-}
-
-
-// =========================================================
-// FIND BEST VOICE
-// =========================================================
-
-function findBestVoice(language) {
-
-    const wantedLanguage =
-        getSpeechLanguage(language)
-            .toLowerCase();
-
-
-    // -----------------------------------------------------
-    // Exact match
-    // -----------------------------------------------------
-
-    let voice =
-        availableVoices.find(
-            function (voice) {
-
-                return (
-                    voice.lang &&
-                    voice.lang.toLowerCase() ===
-                    wantedLanguage
-                );
-
-            }
-        );
-
-
-    if (voice) {
-
-        return voice;
-    }
-
-
-    // -----------------------------------------------------
-    // Language prefix match
-    //
-    // Example:
-    // wanted = hi-in
-    // voice = hi
-    // -----------------------------------------------------
-
-    const languageCode =
-        wantedLanguage.split("-")[0];
-
-
-    voice =
-        availableVoices.find(
-            function (voice) {
-
-                if (!voice.lang) {
-
-                    return false;
-                }
-
-
-                return (
-                    voice.lang
-                        .toLowerCase()
-                        .startsWith(
-                            languageCode
-                        )
-                );
-
-            }
-        );
-
-
-    if (voice) {
-
-        return voice;
-    }
-
-
-    // -----------------------------------------------------
-    // Search by language name
-    // -----------------------------------------------------
-
-    voice =
-        availableVoices.find(
-            function (voice) {
-
-                if (!voice.lang) {
-
-                    return false;
-                }
-
-
-                return (
-                    voice.lang
-                        .toLowerCase()
-                        .includes(
-                            languageCode
-                        )
-                );
-
-            }
-        );
-
-
-    return voice || null;
-}
-
-
-// =========================================================
-// SPEAK TEXT
-// =========================================================
-
-function speakText(text, language) {
-
-    return new Promise(
-        function (resolve, reject) {
-
-            // -------------------------------------------------
-            // Browser support
-            // -------------------------------------------------
-
-            if (
-                !(
-                    "speechSynthesis" in
-                    window
-                )
-            ) {
-
-                reject(
-                    new Error(
-                        "Speech synthesis is not supported by this browser."
-                    )
-                );
-
-                return;
-            }
-
-
-            // -------------------------------------------------
-            // Validate text
-            // -------------------------------------------------
-
-            if (!text || !text.trim()) {
-
-                reject(
-                    new Error(
-                        "There is no text to speak."
-                    )
-                );
-
-                return;
-            }
-
-
-            // -------------------------------------------------
-            // Stop previous speech
-            // -------------------------------------------------
-
-            window.speechSynthesis.cancel();
-
-
-            // -------------------------------------------------
-            // Create speech
-            // -------------------------------------------------
-
-            const utterance =
-                new SpeechSynthesisUtterance(
-                    text
-                );
-
-
-            // -------------------------------------------------
-            // Set language
-            // -------------------------------------------------
-
-            utterance.lang =
-                getSpeechLanguage(
-                    language
-                );
-
-
-            // -------------------------------------------------
-            // Find voice
-            // -------------------------------------------------
-
-            const voice =
-                findBestVoice(
-                    language
-                );
-
-
-            if (voice) {
-
-                utterance.voice =
-                    voice;
-
-                console.log(
-                    "Using voice:",
-                    voice.name,
-                    voice.lang
-                );
-
-            } else {
-
-                console.warn(
-                    "No exact voice found for:",
-                    language,
-                    utterance.lang
-                );
-
-                console.warn(
-                    "Browser will try its default voice for this language."
-                );
-            }
-
-
-            // -------------------------------------------------
-            // Speech speed
-            // -------------------------------------------------
-
-            utterance.rate = 0.9;
-
-            utterance.pitch = 1;
-
-            utterance.volume = 1;
-
-
-            // -------------------------------------------------
-            // Speech started
-            // -------------------------------------------------
-
-            utterance.onstart =
-                function () {
-
-                    status.textContent =
-                        "🔊 Speaking...";
-
-                    speakButton.disabled =
-                        false;
-                };
-
-
-            // -------------------------------------------------
-            // Speech completed
-            // -------------------------------------------------
-
-            utterance.onend =
-                function () {
-
-                    status.textContent =
-                        "✓ Speech completed.";
-
-                    speakButton.disabled =
-                        false;
-
-                    resolve();
-                };
-
-
-            // -------------------------------------------------
-            // Speech error
-            // -------------------------------------------------
-
-            utterance.onerror =
-                function (event) {
-
-                    console.error(
-                        "Speech synthesis error:",
-                        event
-                    );
-
-
-                    speakButton.disabled =
-                        false;
-
-
-                    reject(
-                        new Error(
-                            "The browser could not speak this language. Try installing a suitable Windows voice."
-                        )
-                    );
-                };
-
-
-            // -------------------------------------------------
-            // Start speech
-            // -------------------------------------------------
-
-            window.speechSynthesis.speak(
-                utterance
-            );
-
-        }
-    );
-}
 
 
 // =========================================================
@@ -567,7 +140,7 @@ function speakText(text, language) {
 
 translateButton.addEventListener(
     "click",
-    async function () {
+    async () => {
 
         const text =
             inputText.value.trim();
@@ -579,10 +152,6 @@ translateButton.addEventListener(
             targetLanguage.value;
 
 
-        // -----------------------------------------------------
-        // Validate input
-        // -----------------------------------------------------
-
         if (!text) {
 
             status.textContent =
@@ -592,51 +161,25 @@ translateButton.addEventListener(
         }
 
 
-        // -----------------------------------------------------
-        // Stop any current speech
-        // -----------------------------------------------------
-
-        if (
-            "speechSynthesis" in
-            window
-        ) {
-
-            window.speechSynthesis.cancel();
-        }
-
-
-        // -----------------------------------------------------
-        // Loading
-        // -----------------------------------------------------
-
-        translateButton.disabled =
-            true;
-
-        translateButton.textContent =
-            "Translating...";
-
         status.textContent =
             "Translating...";
 
 
-        try {
+        translateButton.disabled =
+            true;
 
-            // -------------------------------------------------
-            // Send request
-            // -------------------------------------------------
+
+        try {
 
             const response =
                 await fetch(
                     "/translate",
                     {
-
                         method: "POST",
 
                         headers: {
-
                             "Content-Type":
                                 "application/json"
-
                         },
 
                         body: JSON.stringify({
@@ -650,22 +193,13 @@ translateButton.addEventListener(
                                 target
 
                         })
-
                     }
                 );
 
 
-            // -------------------------------------------------
-            // Read response
-            // -------------------------------------------------
-
             const data =
                 await response.json();
 
-
-            // -------------------------------------------------
-            // Error
-            // -------------------------------------------------
 
             if (!response.ok) {
 
@@ -676,17 +210,13 @@ translateButton.addEventListener(
             }
 
 
-            // -------------------------------------------------
-            // Display translation
-            // -------------------------------------------------
-
             translatedText.value =
-                data.translation || "";
+                data.translation;
 
 
-            // -------------------------------------------------
-            // Display pronunciation
-            // -------------------------------------------------
+            // =================================================
+            // PRONUNCIATION
+            // =================================================
 
             if (
                 data.pronunciation &&
@@ -696,62 +226,65 @@ translateButton.addEventListener(
                 pronunciation.textContent =
                     data.pronunciation;
 
+
+                if (target === "ja") {
+
+                    pronunciationTitle.textContent =
+                        "Romaji:";
+
+                }
+
+                else if (target === "ko") {
+
+                    pronunciationTitle.textContent =
+                        "Romanization:";
+
+                }
+
+                else if (
+                    target === "zh-CN" ||
+                    target === "zh-TW"
+                ) {
+
+                    pronunciationTitle.textContent =
+                        "Pinyin:";
+
+                }
+
+                else {
+
+                    pronunciationTitle.textContent =
+                        "Pronunciation:";
+
+                }
+
+
                 pronunciationContainer.style.display =
                     "block";
 
-            } else {
-
-                pronunciation.textContent =
-                    "";
-
-                pronunciationContainer.style.display =
-                    "none";
             }
 
 
-            // -------------------------------------------------
-            // Show detected language
-            // -------------------------------------------------
+            status.textContent =
+                "Translation completed successfully!";
 
-            if (
-                source === "auto" &&
-                data.detected_language
-            ) {
+        }
 
-                console.log(
-                    "Detected language:",
-                    data.detected_language
-                );
-            }
+        catch (error) {
 
-
-            // -------------------------------------------------
-            // Completed
-            // -------------------------------------------------
+            translatedText.value =
+                "";
 
             status.textContent =
-                "✓ Translation completed.";
+                error.message;
 
+        }
 
-        } catch (error) {
-
-            console.error(
-                "Translation error:",
-                error
-            );
-
-
-            status.textContent =
-                error.message ||
-                "Something went wrong.";
-
-        } finally {
+        finally {
 
             translateButton.disabled =
                 false;
 
-            translateButton.textContent =
-                "Translate";
         }
 
     }
@@ -759,87 +292,66 @@ translateButton.addEventListener(
 
 
 // =========================================================
-// SPEAK BUTTON
+// SWAP
 // =========================================================
 
-speakButton.addEventListener(
+swapButton.addEventListener(
     "click",
-    async function () {
+    () => {
 
-        const text =
-            translatedText.value.trim();
-
-
-        // -----------------------------------------------------
-        // Check text
-        // -----------------------------------------------------
-
-        if (!text) {
+        if (
+            sourceLanguage.value === "auto"
+        ) {
 
             status.textContent =
-                "Please translate something first.";
+                "Select a source language before swapping.";
 
             return;
         }
 
 
-        // -----------------------------------------------------
-        // Get target language
-        // -----------------------------------------------------
+        const oldSource =
+            sourceLanguage.value;
 
-        const language =
+        const oldTarget =
             targetLanguage.value;
 
 
-        // -----------------------------------------------------
-        // Stop existing speech
-        // -----------------------------------------------------
+        sourceLanguage.value =
+            oldTarget;
 
-        if (
-            "speechSynthesis" in
-            window
-        ) {
-
-            window.speechSynthesis.cancel();
-        }
+        targetLanguage.value =
+            oldSource;
 
 
-        try {
+        const oldInput =
+            inputText.value;
 
-            status.textContent =
-                "Preparing speech...";
-
-
-            await speakText(
-                text,
-                language
-            );
+        const oldOutput =
+            translatedText.value;
 
 
-        } catch (error) {
+        inputText.value =
+            oldOutput;
 
-            console.error(
-                "Speech error:",
-                error
-            );
+        translatedText.value =
+            oldInput;
 
 
-            status.textContent =
-                "❌ " +
-                error.message;
-        }
+        status.textContent =
+            "Languages swapped.";
 
     }
 );
 
 
 // =========================================================
-// COPY BUTTON
+// COPY
 // =========================================================
 
 copyButton.addEventListener(
     "click",
-    async function () {
+    async () => {
 
         const text =
             translatedText.value.trim();
@@ -848,7 +360,7 @@ copyButton.addEventListener(
         if (!text) {
 
             status.textContent =
-                "Nothing to copy.";
+                "There is no translation to copy.";
 
             return;
         }
@@ -860,20 +372,16 @@ copyButton.addEventListener(
                 text
             );
 
-
             status.textContent =
-                "✓ Translation copied.";
+                "Translation copied!";
 
-        } catch (error) {
+        }
 
-            console.error(
-                "Copy error:",
-                error
-            );
-
+        catch {
 
             status.textContent =
                 "Could not copy the translation.";
+
         }
 
     }
@@ -881,22 +389,12 @@ copyButton.addEventListener(
 
 
 // =========================================================
-// CLEAR BUTTON
+// CLEAR
 // =========================================================
 
 clearButton.addEventListener(
     "click",
-    function () {
-
-        // Stop speech
-        if (
-            "speechSynthesis" in
-            window
-        ) {
-
-            window.speechSynthesis.cancel();
-        }
-
+    () => {
 
         inputText.value =
             "";
@@ -918,132 +416,172 @@ clearButton.addEventListener(
 
 
 // =========================================================
-// SWAP LANGUAGES
+// SPEAK
 // =========================================================
 
-swapButton.addEventListener(
+speakButton.addEventListener(
     "click",
-    function () {
+    async () => {
 
-        const currentSource =
-            sourceLanguage.value;
+        const text =
+            translatedText.value.trim();
 
-        const currentTarget =
+
+        if (!text) {
+
+            status.textContent =
+                "There is no translation to speak.";
+
+            return;
+        }
+
+
+        const language =
             targetLanguage.value;
 
 
-        // -----------------------------------------------------
-        // Swap languages
-        // -----------------------------------------------------
+        if (!language || language === "auto") {
 
-        if (currentSource === "auto") {
+            status.textContent =
+                "Please select a target language.";
 
-            sourceLanguage.value =
-                currentTarget;
-
-            targetLanguage.value =
-                "en";
-
-        } else {
-
-            sourceLanguage.value =
-                currentTarget;
-
-            targetLanguage.value =
-                currentSource;
-        }
-
-
-        // -----------------------------------------------------
-        // Swap text
-        // -----------------------------------------------------
-
-        const currentInput =
-            inputText.value;
-
-        const currentTranslation =
-            translatedText.value;
-
-
-        inputText.value =
-            currentTranslation;
-
-        translatedText.value =
-            currentInput;
-
-
-        // -----------------------------------------------------
-        // Clear pronunciation
-        // -----------------------------------------------------
-
-        pronunciation.textContent =
-            "";
-
-        pronunciationContainer.style.display =
-            "none";
-
-
-        // -----------------------------------------------------
-        // Stop speech
-        // -----------------------------------------------------
-
-        if (
-            "speechSynthesis" in
-            window
-        ) {
-
-            window.speechSynthesis.cancel();
+            return;
         }
 
 
         status.textContent =
-            "Languages swapped.";
-
-    }
-);
+            `🔊 Preparing ${languageNames[language] || language} speech...`;
 
 
-// =========================================================
-// ENTER KEY SHORTCUT
-// =========================================================
+        speakButton.disabled =
+            true;
 
-inputText.addEventListener(
-    "keydown",
-    function (event) {
 
-        // Ctrl + Enter
-        if (
-            event.ctrlKey &&
-            event.key === "Enter"
-        ) {
+        try {
 
-            event.preventDefault();
+            const response =
+                await fetch(
+                    "/speak",
+                    {
+                        method: "POST",
 
-            translateButton.click();
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            text: text,
+
+                            language: language
+
+                        })
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                let errorMessage =
+                    "Speech generation failed.";
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+                    errorMessage =
+                        errorData.error ||
+                        errorMessage;
+
+                }
+
+                catch {
+
+                }
+
+                throw new Error(
+                    errorMessage
+                );
+            }
+
+
+            const audioBlob =
+                await response.blob();
+
+
+            const audioUrl =
+                URL.createObjectURL(
+                    audioBlob
+                );
+
+
+            const audio =
+                new Audio(
+                    audioUrl
+                );
+
+
+            audio.onplay =
+                () => {
+
+                    status.textContent =
+                        `🔊 Speaking in ${languageNames[language] || language}...`;
+
+                };
+
+
+            audio.onended =
+                () => {
+
+                    status.textContent =
+                        "Speech completed.";
+
+                    URL.revokeObjectURL(
+                        audioUrl
+                    );
+
+                    speakButton.disabled =
+                        false;
+
+                };
+
+
+            audio.onerror =
+                () => {
+
+                    status.textContent =
+                        "Could not play the speech.";
+
+                    URL.revokeObjectURL(
+                        audioUrl
+                    );
+
+                    speakButton.disabled =
+                        false;
+
+                };
+
+
+            await audio.play();
+
         }
 
-    }
-);
+        catch (error) {
 
+            console.error(
+                "Speech error:",
+                error
+            );
 
-// =========================================================
-// PAGE LOAD
-// =========================================================
+            status.textContent =
+                error.message;
 
-window.addEventListener(
-    "load",
-    function () {
+            speakButton.disabled =
+                false;
 
-        // Give Chrome time to load voices
-        setTimeout(
-            loadVoices,
-            500
-        );
-
-        setTimeout(
-            loadVoices,
-            1500
-        );
+        }
 
     }
 );

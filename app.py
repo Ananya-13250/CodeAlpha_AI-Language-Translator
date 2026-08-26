@@ -1,49 +1,13 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import requests
 import pykakasi
 from unidecode import unidecode
 from pypinyin import lazy_pinyin, Style
 from gtts import gTTS
-from langdetect import detect, DetectorFactory
-import base64
-from io import BytesIO
+import io
 
 
 app = Flask(__name__)
-
-
-# =========================================================
-# LANGUAGE DETECTION
-# =========================================================
-
-# Make language detection consistent
-DetectorFactory.seed = 0
-
-
-def detect_language(text):
-    """
-    Automatically detect the language of the input text.
-    """
-
-    try:
-
-        detected = detect(text)
-
-        print(
-            "Detected language:",
-            detected
-        )
-
-        return detected
-
-    except Exception as e:
-
-        print(
-            "Language detection error:",
-            str(e)
-        )
-
-        return "en"
 
 
 # =========================================================
@@ -54,10 +18,6 @@ kks = pykakasi.kakasi()
 
 
 def romanize_japanese(text):
-    """
-    Convert Japanese Kanji, Hiragana and Katakana
-    into Romaji.
-    """
 
     result = kks.convert(text)
 
@@ -71,7 +31,6 @@ def romanize_japanese(text):
         ).strip()
 
         if word:
-
             words.append(word)
 
     return " ".join(words)
@@ -82,9 +41,6 @@ def romanize_japanese(text):
 # =========================================================
 
 def romanize_chinese(text):
-    """
-    Convert Chinese characters into Pinyin.
-    """
 
     result = lazy_pinyin(
         text,
@@ -95,205 +51,125 @@ def romanize_chinese(text):
 
 
 # =========================================================
-# GENERAL PRONUNCIATION
+# PRONUNCIATION
 # =========================================================
 
-def get_pronunciation(text, language):
+def get_pronunciation(
+    text,
+    language
+):
 
-    # Japanese
     if language == "ja":
 
         return romanize_japanese(text)
 
-
-    # Chinese Simplified
-    elif language == "zh-CN":
+    elif language in ["zh-CN", "zh-TW"]:
 
         return romanize_chinese(text)
 
-
-    # Chinese Traditional
-    elif language == "zh-TW":
-
-        return romanize_chinese(text)
-
-
-    # Other languages
     else:
 
         return unidecode(text)
 
 
 # =========================================================
-# TEXT TO SPEECH
+# LANGUAGE CODES FOR GOOGLE TTS
 # =========================================================
 
-def generate_speech(text, language):
-    """
-    Convert translated text into speech.
+TTS_LANGUAGES = {
 
-    Returns Base64 encoded MP3 audio.
-    """
+    "en": "en",
+    "hi": "hi",
+    "mr": "mr",
+    "gu": "gu",
+    "bn": "bn",
+    "ta": "ta",
+    "te": "te",
+    "kn": "kn",
+    "ml": "ml",
+    "pa": "pa",
+    "ur": "ur",
 
-    tts_languages = {
+    "fr": "fr",
+    "es": "es",
+    "de": "de",
+    "it": "it",
+    "pt": "pt",
+    "nl": "nl",
 
-        # -------------------------------------------------
-        # INDIAN
-        # -------------------------------------------------
+    "ru": "ru",
+    "uk": "uk",
+    "pl": "pl",
+    "cs": "cs",
+    "sk": "sk",
+    "ro": "ro",
+    "hu": "hu",
+    "bg": "bg",
+    "el": "el",
 
-        "en": "en",
-        "hi": "hi",
-        "mr": "mr",
-        "gu": "gu",
-        "bn": "bn",
-        "ta": "ta",
-        "te": "te",
-        "kn": "kn",
-        "ml": "ml",
-        "pa": "pa",
-        "ur": "ur",
-        "ne": "ne",
+    "sv": "sv",
+    "da": "da",
+    "no": "no",
+    "fi": "fi",
+    "is": "is",
+    "ga": "ga",
 
+    "ar": "ar",
+    "he": "he",
+    "fa": "fa",
+    "tr": "tr",
 
-        # -------------------------------------------------
-        # EUROPEAN
-        # -------------------------------------------------
+    "zh-CN": "zh-CN",
+    "zh-TW": "zh-TW",
 
-        "fr": "fr",
-        "es": "es",
-        "de": "de",
-        "it": "it",
-        "pt": "pt",
-        "nl": "nl",
-        "ru": "ru",
-        "uk": "uk",
-        "pl": "pl",
-        "cs": "cs",
-        "sk": "sk",
-        "ro": "ro",
-        "hu": "hu",
-        "bg": "bg",
-        "el": "el",
-        "sv": "sv",
-        "da": "da",
-        "no": "no",
-        "fi": "fi",
-        "is": "is",
-        "ga": "ga",
-        "cy": "cy",
-        "ca": "ca",
-        "hr": "hr",
-        "sr": "sr",
-        "sl": "sl",
-        "et": "et",
-        "lv": "lv",
-        "lt": "lt",
-        "mk": "mk",
-        "sq": "sq",
-        "bs": "bs",
-        "be": "be",
+    "ja": "ja",
+    "ko": "ko",
+    "th": "th",
+    "vi": "vi",
 
+    "id": "id",
+    "ms": "ms",
+    "fil": "tl",
 
-        # -------------------------------------------------
-        # MIDDLE EAST
-        # -------------------------------------------------
-
-        "ar": "ar",
-        "he": "iw",
-        "fa": "fa",
-        "tr": "tr",
-
-
-        # -------------------------------------------------
-        # EAST ASIA
-        # -------------------------------------------------
-
-        "ja": "ja",
-        "ko": "ko",
-        "zh-CN": "zh-CN",
-        "zh-TW": "zh-TW",
-        "th": "th",
-        "vi": "vi",
-
-
-        # -------------------------------------------------
-        # SOUTH EAST ASIA
-        # -------------------------------------------------
-
-        "id": "id",
-        "ms": "ms",
-        "fil": "tl",
-
-
-        # -------------------------------------------------
-        # AFRICA
-        # -------------------------------------------------
-
-        "sw": "sw",
-        "af": "af",
-
-
-        # -------------------------------------------------
-        # OTHER
-        # -------------------------------------------------
-
-        "hy": "hy",
-        "az": "az",
-        "eu": "eu",
-        "ka": "ka",
-        "kk": "kk",
-        "km": "km",
-        "lo": "lo",
-        "mn": "mn"
-    }
-
-
-    tts_language = tts_languages.get(
-        language
-    )
-
-
-    if not tts_language:
-
-        raise Exception(
-            f"Speech is not supported for language: {language}"
-        )
-
-
-    mp3_fp = BytesIO()
-
-
-    tts = gTTS(
-        text=text,
-        lang=tts_language,
-        slow=False
-    )
-
-
-    tts.write_to_fp(
-        mp3_fp
-    )
-
-
-    mp3_fp.seek(0)
-
-
-    audio_base64 = base64.b64encode(
-        mp3_fp.read()
-    ).decode("utf-8")
-
-
-    return audio_base64
+    "sw": "sw",
+    "af": "af",
+    "sq": "sq",
+    "hy": "hy",
+    "az": "az",
+    "eu": "eu",
+    "be": "be",
+    "bs": "bs",
+    "ca": "ca",
+    "hr": "hr",
+    "et": "et",
+    "ka": "ka",
+    "kk": "kk",
+    "km": "km",
+    "lo": "lo",
+    "lv": "lv",
+    "lt": "lt",
+    "mk": "mk",
+    "mn": "mn",
+    "ne": "ne",
+    "sr": "sr",
+    "sl": "sl",
+    "cy": "cy"
+}
 
 
 # =========================================================
 # TRANSLATION
 # =========================================================
 
-def translate_text(text, source, target):
+def translate_text(
+    text,
+    source,
+    target
+):
 
-    url = "https://api.mymemory.translated.net/get"
-
+    url = (
+        "https://api.mymemory.translated.net/get"
+    )
 
     params = {
 
@@ -301,23 +177,14 @@ def translate_text(text, source, target):
 
         "langpair":
             f"{source}|{target}"
+
     }
-
-
-    print(
-        "Translation:",
-        source,
-        "->",
-        target
-    )
-
 
     response = requests.get(
         url,
         params=params,
-        timeout=30
+        timeout=20
     )
-
 
     if response.status_code != 200:
 
@@ -325,25 +192,9 @@ def translate_text(text, source, target):
             "Translation service is unavailable."
         )
 
-
     result = response.json()
 
-
-    print(
-        "Translation API response:",
-        result
-    )
-
-
-    response_status = result.get(
-        "responseStatus"
-    )
-
-
-    # MyMemory may return 200 as either
-    # integer or string depending on response
-
-    if str(response_status) != "200":
+    if result.get("responseStatus") != 200:
 
         raise Exception(
             result.get(
@@ -352,15 +203,11 @@ def translate_text(text, source, target):
             )
         )
 
-
-    translated = result.get(
-        "responseData",
-        {}
-    ).get(
-        "translatedText",
-        ""
+    translated = (
+        result
+        .get("responseData", {})
+        .get("translatedText", "")
     )
-
 
     if not translated:
 
@@ -368,12 +215,11 @@ def translate_text(text, source, target):
             "No translation was returned."
         )
 
-
     return translated
 
 
 # =========================================================
-# HOME PAGE
+# HOME
 # =========================================================
 
 @app.route("/")
@@ -385,7 +231,7 @@ def home():
 
 
 # =========================================================
-# TRANSLATION API
+# TRANSLATE API
 # =========================================================
 
 @app.route(
@@ -396,172 +242,67 @@ def translate():
 
     try:
 
-        # =================================================
-        # GET REQUEST
-        # =================================================
-
         data = request.get_json()
-
-
-        if not data:
-
-            return jsonify({
-
-                "error":
-                    "Invalid request."
-
-            }), 400
-
-
-        # =================================================
-        # GET VALUES
-        # =================================================
 
         text = data.get(
             "text",
             ""
         ).strip()
 
-
         source = data.get(
             "source_language",
-            "auto"
+            "en"
         )
-
 
         target = data.get(
             "target_language",
             "en"
         )
 
-
-        # =================================================
-        # VALIDATE TEXT
-        # =================================================
-
         if not text:
 
             return jsonify({
-
                 "error":
-                    "Please enter some text."
-
+                "Please enter some text."
             }), 400
-
-
-        # =================================================
-        # AUTO DETECTION
-        # =================================================
-
-        detected_language = None
 
 
         if source == "auto":
 
-            detected_language = detect_language(
-                text
-            )
+            source = "en"
 
-            source = detected_language
-
-
-        # =================================================
-        # FIX LANGUAGE CODES
-        # =================================================
-
-        # langdetect uses "zh" for Chinese.
-        # MyMemory needs a more specific code.
-
-        if source == "zh":
-
-            source = "zh-CN"
-
-
-        # =================================================
-        # SAME LANGUAGE
-        # =================================================
 
         if source == target:
 
             translated = text
 
-
-        # =================================================
-        # TRANSLATE
-        # =================================================
-
         else:
 
             translated = translate_text(
-
                 text,
-
                 source,
-
                 target
             )
 
 
-        # =================================================
-        # PRONUNCIATION
-        # =================================================
+        # Generate pronunciation text
 
         pronunciation = ""
-
 
         try:
 
             pronunciation = get_pronunciation(
-
                 translated,
-
                 target
             )
 
-        except Exception as e:
+        except Exception as error:
 
             print(
                 "Pronunciation error:",
-                str(e)
+                error
             )
 
-            pronunciation = ""
-
-
-        # =================================================
-        # SPEECH
-        # =================================================
-
-        speech = ""
-
-        speech_error = ""
-
-
-        try:
-
-            speech = generate_speech(
-
-                translated,
-
-                target
-            )
-
-
-        except Exception as e:
-
-            print(
-                "Speech error:",
-                str(e)
-            )
-
-            speech = ""
-
-            speech_error = str(e)
-
-
-        # =================================================
-        # RESPONSE
-        # =================================================
 
         return jsonify({
 
@@ -569,68 +310,115 @@ def translate():
                 translated,
 
             "pronunciation":
-                pronunciation,
-
-            "speech":
-                speech,
-
-            "speech_error":
-                speech_error,
-
-            "detected_language":
-                detected_language,
-
-            "source_language":
-                source,
-
-            "target_language":
-                target
+                pronunciation
 
         })
 
 
-    # =====================================================
-    # REQUEST ERROR
-    # =====================================================
-
-    except requests.RequestException as e:
-
-        print(
-            "Request error:",
-            str(e)
-        )
-
-
-        return jsonify({
-
-            "error":
-                "Could not connect to the translation service."
-
-        }), 500
-
-
-    # =====================================================
-    # GENERAL ERROR
-    # =====================================================
-
-    except Exception as e:
+    except Exception as error:
 
         print(
             "Translation error:",
-            str(e)
+            error
         )
 
-
         return jsonify({
-
             "error":
-                str(e)
-
+            str(error)
         }), 500
 
 
 # =========================================================
-# RUN SERVER
+# TEXT TO SPEECH
+# =========================================================
+
+@app.route(
+    "/speak",
+    methods=["POST"]
+)
+def speak():
+
+    try:
+
+        data = request.get_json()
+
+        text = data.get(
+            "text",
+            ""
+        ).strip()
+
+        language = data.get(
+            "language",
+            "en"
+        )
+
+
+        if not text:
+
+            return jsonify({
+                "error":
+                "Nothing to speak."
+            }), 400
+
+
+        # Get Google TTS language code
+
+        tts_language = TTS_LANGUAGES.get(
+            language
+        )
+
+
+        if not tts_language:
+
+            return jsonify({
+                "error":
+                f"Speech is not available for {language}."
+            }), 400
+
+
+        # Create speech
+
+        speech = gTTS(
+            text=text,
+            lang=tts_language,
+            slow=False
+        )
+
+
+        # Store audio in memory
+
+        audio = io.BytesIO()
+
+        speech.write_to_fp(
+            audio
+        )
+
+        audio.seek(0)
+
+
+        return send_file(
+            audio,
+            mimetype="audio/mpeg",
+            as_attachment=False,
+            download_name="speech.mp3"
+        )
+
+
+    except Exception as error:
+
+        print(
+            "Speech error:",
+            error
+        )
+
+        return jsonify({
+            "error":
+            "Could not generate speech. Check your internet connection."
+        }), 500
+
+
+# =========================================================
+# RUN
 # =========================================================
 
 if __name__ == "__main__":
